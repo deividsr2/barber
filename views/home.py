@@ -1,27 +1,31 @@
 import streamlit as st
 import base64
 import os
+import json
 
 # Recuperar nome da barbearia das configurações
 if "company_name" not in st.session_state:
     st.session_state.company_name = "R10 Barber Shop"  # Nome padrão caso não esteja carregado
 
+# Função para carregar dados dos barbeiros do arquivo JSON
+def load_barbeiros():
+    barbeiros_file = "barbeiros.json"
+    if os.path.exists(barbeiros_file):
+        with open(barbeiros_file, "r") as f:
+            return json.load(f)
+    return {"quantidade": 2, "nomes": ["Barbeiro 1", "Barbeiro 2"]}
+
+barbeiros_data = load_barbeiros()
+quantidade_barbeiros = barbeiros_data["quantidade"]
+
 # Título da página com o nome da barbearia
 st.title(f"Bem-vindo à {st.session_state.company_name}")
 st.write("Use o menu à esquerda para navegar entre as páginas dos barbeiros.")
 
-# Lista de imagens e links correspondentes
+# Lista de imagens e links correspondentes baseados na quantidade de barbeiros
 imagens_links = {
-    "img_barbeiros/barbeiro_1.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_1",
-    "img_barbeiros/barbeiro_2.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_2",
-    "img_barbeiros/barbeiro_3.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_3",
-    "img_barbeiros/barbeiro_4.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_4",
-    "img_barbeiros/barbeiro_5.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_5",
-    "img_barbeiros/barbeiro_6.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_6",
-    "img_barbeiros/barbeiro_7.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_7",
-    "img_barbeiros/barbeiro_8.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_8",
-    "img_barbeiros/barbeiro_9.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_9",
-    "img_barbeiros/barbeiro_10.jpg": "https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_10",
+    f"img_barbeiros/barbeiro_{i + 1}.jpg": f"https://deividsr2-barber-r10-git-main-v4o0iy.streamlit.app/barbeiro_{i + 1}"
+    for i in range(quantidade_barbeiros)
 }
 
 # Função para converter imagens em Base64
