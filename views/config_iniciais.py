@@ -5,6 +5,8 @@ import os
 import glob
 import json
 
+
+st.set_page_config(page_title="Barbearia", layout="centered")
 # Função para substituir arquivos
 def replace_file(directory, uploaded_file, prefix):
     file_extension = os.path.splitext(uploaded_file.name)[1]
