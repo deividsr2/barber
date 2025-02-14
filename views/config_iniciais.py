@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 from pathlib import Path
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 # Definir o caminho da pasta de imagens
 PASTA_IMAGENS = Path("img_barbeiros")
@@ -36,14 +36,21 @@ imagem_selecionada = st.selectbox("Escolha a imagem que deseja substituir", imag
 imagem_upload = st.file_uploader("Faça upload da nova imagem", type=["png", "jpg", "jpeg"])
 
 if imagem_upload and imagem_selecionada:
-    caminho_substituir = PASTA_IMAGENS / imagem_selecionada
+    try:
+        # Tentar abrir a imagem carregada
+        imagem_nova = Image.open(imagem_upload)
 
-    # Abrir a imagem carregada pelo usuário
-    imagem_nova = Image.open(imagem_upload)
+        # Redimensionar a nova imagem antes de salvar
+        imagem_nova.thumbnail((300, 300))
 
-    # Redimensionar a nova imagem antes de salvar
-    imagem_nova.thumbnail((300, 300))
-    imagem_nova.save(caminho_substituir)
+        # Caminho para substituir a imagem
+        caminho_substituir = PASTA_IMAGENS / imagem_selecionada
 
-    st.success(f"A imagem '{imagem_selecionada}' foi substituída com sucesso!")
-    st.rerun()
+        # Salvar a nova imagem
+        imagem_nova.save(caminho_substituir)
+
+        st.success(f"A imagem '{imagem_selecionada}' foi substituída com sucesso!")
+        st.rerun()
+
+    except UnidentifiedImageError:
+        st.error("O arquivo carregado não é uma imagem válida. Tente novamente com um arquivo de imagem.")
