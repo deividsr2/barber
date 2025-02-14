@@ -5,13 +5,25 @@ import os
 import glob
 import json
 
+
+
 # Função para substituir arquivos
 def replace_file(directory, uploaded_file, prefix):
     file_extension = os.path.splitext(uploaded_file.name)[1]
+
+    # Remover arquivos antigos
+    old_files = glob.glob(os.path.join(directory, f"{prefix}.*"))
+    for old_file in old_files:
+        os.remove(old_file)
+
     file_path = os.path.join(directory, f"{prefix}{file_extension}")
+
+    # Salvar novo arquivo
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
+
     return file_path
+
 
 # Criar diretórios caso não existam
 os.makedirs("logo", exist_ok=True)
@@ -35,7 +47,7 @@ def load_company_name():
     if os.path.exists(config_file):
         with open(config_file, "r") as f:
             return f.read().strip()
-    return "R10 Barber Shop"
+    return "Nome da sua empresa"
 
 def save_theme(theme):
     with open(theme_file, "w") as f:
@@ -215,25 +227,44 @@ def load_barbeiros():
     return {"quantidade": 2, "nomes": ["Barbeiro 1", "Barbeiro 2"]}
 
 barbeiros_data = load_barbeiros()
-quantidade_barbeiros = st.sidebar.slider("Número de Barbeiros", min_value=2, max_value=10, value=barbeiros_data["quantidade"])
 
-nomes_barbeiros = []
-for i in range(quantidade_barbeiros):
-    nome = st.sidebar.text_input(f"Nome do Barbeiro {i+1}:", value=barbeiros_data["nomes"][i] if i < len(barbeiros_data["nomes"]) else f"Barbeiro {i+1}")
-    nomes_barbeiros.append(nome)
+# Inicializar estado para exibição/ocultação das configurações dos barbeiros
+if "show_barber_config" not in st.session_state:
+    st.session_state.show_barber_config = False
 
-if st.sidebar.button("Salvar Configurações"):
-    barbeiros_data["quantidade"] = quantidade_barbeiros
-    barbeiros_data["nomes"] = nomes_barbeiros
-    save_barbeiros(barbeiros_data)
-    st.success("Configurações salvas!")
+# Botão para exibir/esconder configurações dos barbeiros
+if st.sidebar.button("Configurar Barbeiros"):
+    st.session_state.show_barber_config = not st.session_state.show_barber_config
+
+# Mostrar configurações apenas se o botão estiver ativado
+if st.session_state.show_barber_config:
+    st.sidebar.subheader("Configurações dos Barbeiros")
+
+    quantidade_barbeiros = st.sidebar.slider(
+        "Número de Barbeiros", min_value=2, max_value=10, value=barbeiros_data["quantidade"]
+    )
+
+    nomes_barbeiros = []
+    for i in range(quantidade_barbeiros):
+        nome = st.sidebar.text_input(
+            f"Nome do Barbeiro {i+1}:",
+            value=barbeiros_data["nomes"][i] if i < len(barbeiros_data["nomes"]) else f"Barbeiro {i+1}"
+        )
+        nomes_barbeiros.append(nome)
+
+    if st.sidebar.button("Salvar Configurações"):
+        barbeiros_data["quantidade"] = quantidade_barbeiros
+        barbeiros_data["nomes"] = nomes_barbeiros
+        save_barbeiros(barbeiros_data)
+        st.success("Configurações salvas!")
+        st.rerun()  # Atualizar a interface
 
 # --- Navegação das Páginas ---
 Home = st.Page("views/home.py", title="Home", icon=":material/account_circle:", default=True)
 
 barbeiro_pages = [
-    st.Page(f"views/barbeiro{i+1}.py", title=nomes_barbeiros[i], icon=":material/bar_chart:")
-    for i in range(quantidade_barbeiros)
+    st.Page(f"views/barbeiro{i+1}.py", title=barbeiros_data["nomes"][i], icon=":material/bar_chart:")
+    for i in range(barbeiros_data["quantidade"])
 ]
 
 financeiro = st.Page("views/financeiro.py", title="Financeiro", icon=":material/attach_money:")
