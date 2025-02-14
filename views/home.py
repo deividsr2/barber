@@ -25,7 +25,7 @@ st.write("Use o menu à esquerda para navegar entre as páginas dos barbeiros.")
 # Lista de imagens e links correspondentes baseados na quantidade de barbeiros
 imagens_links = {
     f"img_barbeiros/barbeiro_{i + 1}.jpg": f"https://barber-9587vgzd6cb8kzp2ahwfzf.streamlit.app/barbeiro{i + 1}"
-    for i in range(quantidade_barbeiros)   #https://barber-9587vgzd6cb8kzp2ahwfzf.streamlit.app/
+    for i in range(quantidade_barbeiros)   #https://barber-9587vgzd6cb8kzp2ahwfzf.streamlit.app/barbeiro2
 }
 
 # Função para converter imagens em Base64
