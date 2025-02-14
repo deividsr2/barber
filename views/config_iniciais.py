@@ -5,6 +5,14 @@ import os
 import glob
 import json
 
+# Função para substituir arquivos
+def replace_file(directory, uploaded_file, prefix):
+    file_extension = os.path.splitext(uploaded_file.name)[1]
+    file_path = os.path.join(directory, f"{prefix}{file_extension}")
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    return file_path
+
 # Criar diretórios caso não existam
 os.makedirs("logo", exist_ok=True)
 os.makedirs("bc", exist_ok=True)
@@ -78,6 +86,10 @@ if "font_color" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"  # Página inicial
 
+# Garantir que 'show_config' esteja inicializada
+if "show_config" not in st.session_state:
+    st.session_state.show_config = False  # Inicialmente esconder configurações
+
 # Função para aplicar a logo e configurações de fundo
 def set_page_configurations():
     logo_path = next(iter(glob.glob(f"{logo_dir}/logo.*")), "logo/logo.png")
@@ -126,63 +138,68 @@ set_page_configurations()
 # --- Configurações da Barbearia (No topo da página inicial) ---
 if st.session_state.page == "home":  # Garantir que isso só aconteça na página inicial
     st.title(st.session_state.company_name)
-    st.subheader("Configurações da Barbearia")
+    #st.subheader("Configurações da Barbearia")
 
-    # Inputs para upload, escolha de tema, cor da fonte, etc.
-    uploaded_logo = st.file_uploader("Envie uma nova logo:", type=["png", "jpg", "jpeg"])
-    uploaded_bg = st.file_uploader("Envie uma nova imagem de fundo:", type=["png", "jpg", "jpeg"])
-    new_name = st.text_input("Nome da Barbearia:", st.session_state.company_name)
+    # Botão para exibir/esconder configurações
+    if st.button("ESTILO DO SITE"):
+        st.session_state.show_config = not st.session_state.show_config
 
-    # Opção para escolher o tema
-    theme_options = {"Claro": "light", "Escuro": "dark"}
-    theme_choice = st.selectbox("Escolha o tema:", list(theme_options.keys()), 
-                                index=list(theme_options.values()).index(st.session_state.theme))
+    if st.session_state.show_config:
+        # Inputs para upload, escolha de tema, cor da fonte, etc.
+        uploaded_logo = st.file_uploader("Envie uma nova logo:", type=["png", "jpg", "jpeg"])
+        uploaded_bg = st.file_uploader("Envie uma nova imagem de fundo:", type=["png", "jpg", "jpeg"])
+        new_name = st.text_input("Nome da Barbearia:", st.session_state.company_name)
 
-    # Controle deslizante para ajustar opacidade do background
-    new_opacity = st.slider("Opacidade do fundo", min_value=0.1, max_value=1.0, value=st.session_state.bg_opacity, step=0.05)
+        # Opção para escolher o tema
+        theme_options = {"Claro": "light", "Escuro": "dark"}
+        theme_choice = st.selectbox("Escolha o tema:", list(theme_options.keys()), 
+                                    index=list(theme_options.values()).index(st.session_state.theme))
 
-    # Opção para escolher a cor da fonte
-    font_color_options = {
-        "Preto": "black",
-        "Branco": "white",
-        "Vermelho": "red",
-        "Azul": "blue",
-        "Amarelo": "yellow"
-    }
-    font_choice = st.selectbox("Escolha a cor da fonte:", list(font_color_options.keys()),
-                               index=list(font_color_options.values()).index(st.session_state.font_color))
+        # Controle deslizante para ajustar opacidade do background
+        new_opacity = st.slider("Opacidade do fundo", min_value=0.1, max_value=1.0, value=st.session_state.bg_opacity, step=0.05)
 
-    # Botão para salvar as alterações
-    if st.button("Salvar Alterações"):
-        if uploaded_logo:
-            logo_path = replace_file(logo_dir, uploaded_logo, "logo")
-            st.success("Logo atualizada!")
+        # Opção para escolher a cor da fonte
+        font_color_options = {
+            "Preto": "black",
+            "Branco": "white",
+            "Vermelho": "red",
+            "Azul": "blue",
+            "Amarelo": "yellow"
+        }
+        font_choice = st.selectbox("Escolha a cor da fonte:", list(font_color_options.keys()),
+                                   index=list(font_color_options.values()).index(st.session_state.font_color))
 
-        if uploaded_bg:
-            bg_path = replace_file(bg_dir, uploaded_bg, "bc")
-            st.success("Imagem de fundo atualizada!")
+        # Botão para salvar as alterações
+        if st.button("Salvar Alterações"):
+            if uploaded_logo:
+                logo_path = replace_file(logo_dir, uploaded_logo, "logo")
+                st.success("Logo atualizada!")
 
-        if new_name and new_name != st.session_state.company_name:
-            st.session_state.company_name = new_name
-            save_company_name(new_name)
-            st.success("Nome da empresa atualizado!")
+            if uploaded_bg:
+                bg_path = replace_file(bg_dir, uploaded_bg, "bc")
+                st.success("Imagem de fundo atualizada!")
 
-        if theme_options[theme_choice] != st.session_state.theme:
-            st.session_state.theme = theme_options[theme_choice]
-            save_theme(st.session_state.theme)
-            st.warning("Tema atualizado! Reinicie o app para aplicar.")
+            if new_name and new_name != st.session_state.company_name:
+                st.session_state.company_name = new_name
+                save_company_name(new_name)
+                st.success("Nome da empresa atualizado!")
 
-        if new_opacity != st.session_state.bg_opacity:
-            st.session_state.bg_opacity = new_opacity
-            save_opacity(new_opacity)
-            st.success("Opacidade do fundo atualizada!")
+            if theme_options[theme_choice] != st.session_state.theme:
+                st.session_state.theme = theme_options[theme_choice]
+                save_theme(st.session_state.theme)
+                st.warning("Tema atualizado! Reinicie o app para aplicar.")
 
-        if font_color_options[font_choice] != st.session_state.font_color:
-            st.session_state.font_color = font_color_options[font_choice]
-            save_font_color(st.session_state.font_color)
-            st.success("Cor da fonte atualizada!")
+            if new_opacity != st.session_state.bg_opacity:
+                st.session_state.bg_opacity = new_opacity
+                save_opacity(new_opacity)
+                st.success("Opacidade do fundo atualizada!")
 
-        st.experimental_rerun()
+            if font_color_options[font_choice] != st.session_state.font_color:
+                st.session_state.font_color = font_color_options[font_choice]
+                save_font_color(st.session_state.font_color)
+                st.success("Cor da fonte atualizada!")
+
+            st.rerun()
 
 # --- Configuração dos Barbeiros ---
 barbeiros_file = "barbeiros.json"
@@ -221,6 +238,7 @@ barbeiro_pages = [
 
 financeiro = st.Page("views/financeiro.py", title="Financeiro", icon=":material/attach_money:")
 cadastro = st.Page("views/cadastro.py", title="Cadastro", icon=":material/settings:")
+config = st.Page("views/config_iniciais.py", title="Ajustes", icon=":material/settings:")
 
 # Navegação sem configurações (apenas conteúdo das páginas)
 pg = st.navigation(
@@ -229,6 +247,7 @@ pg = st.navigation(
         "Barbeiros": barbeiro_pages,
         "Financeiro": [financeiro],
         "Cadastro": [cadastro],
+        "Ajustes": [config],
     }
 )
 
