@@ -9,8 +9,17 @@ PASTA_IMAGENS = Path("img_barbeiros")
 # Criar a pasta caso não exista
 PASTA_IMAGENS.mkdir(parents=True, exist_ok=True)
 
-# Listar os arquivos de imagem na pasta
-imagens_existentes = [f for f in os.listdir(PASTA_IMAGENS) if f.endswith((".png", ".jpg", ".jpeg"))]
+# Listar os arquivos de imagem na pasta e verificar se são válidos
+imagens_existentes = []
+for f in os.listdir(PASTA_IMAGENS):
+    if f.endswith((".png", ".jpg", ".jpeg")):
+        try:
+            # Tentar abrir o arquivo para verificar se é uma imagem válida
+            caminho_img = PASTA_IMAGENS / f
+            Image.open(caminho_img)
+            imagens_existentes.append(f)
+        except UnidentifiedImageError:
+            st.warning(f"O arquivo {f} não é uma imagem válida e será ignorado.")
 
 st.title("Gerenciar Imagens dos Barbeiros")
 
@@ -26,7 +35,7 @@ if imagens_existentes:
 
         st.image(imagem, caption=img, use_container_width=True)
 else:
-    st.write("Nenhuma imagem encontrada na pasta.")
+    st.write("Nenhuma imagem válida encontrada na pasta.")
 
 # Upload de nova imagem para substituir uma existente
 st.subheader("Substituir uma imagem")
