@@ -52,6 +52,10 @@ if imagem_upload and imagem_selecionada:
         # Redimensionar a nova imagem antes de salvar
         imagem_nova.thumbnail((300, 300))
 
+        # Verificar se a imagem tem transparência (modo RGBA) e converter para RGB
+        if imagem_nova.mode == "RGBA":
+            imagem_nova = imagem_nova.convert("RGB")
+
         # Caminho para substituir a imagem
         caminho_substituir = PASTA_IMAGENS / imagem_selecionada
 
@@ -63,3 +67,5 @@ if imagem_upload and imagem_selecionada:
 
     except UnidentifiedImageError:
         st.error("O arquivo carregado não é uma imagem válida. Tente novamente com um arquivo de imagem.")
+    except OSError as e:
+        st.error(f"Erro ao salvar a imagem: {e}")
