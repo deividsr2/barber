@@ -17,7 +17,6 @@ config_file = "config.txt"
 theme_file = ".streamlit/config.toml"
 opacity_file = "opacity.txt"
 font_color_file = "font_color.txt"
-barbeiros_file = "barbeiros.json"
 
 # Função para salvar o nome da barbearia
 def save_company_name(name):
@@ -140,70 +139,67 @@ st.title(st.session_state.company_name)
 
 st.subheader("Configurações da Barbearia")
 
-# Botão para exibir ou ocultar as configurações
-show_config = st.button("Exibir/Ocultar Configurações")
+# Inputs para upload
+uploaded_logo = st.file_uploader("Envie uma nova logo:", type=["png", "jpg", "jpeg"])
+uploaded_bg = st.file_uploader("Envie uma nova imagem de fundo:", type=["png", "jpg", "jpeg"])
 
-# Quando o botão for clicado, exibir as configurações
-if show_config:
-    with st.expander("Configurações", expanded=True):
-        # Inputs para upload
-        uploaded_logo = st.file_uploader("Envie uma nova logo:", type=["png", "jpg", "jpeg"])
-        uploaded_bg = st.file_uploader("Envie uma nova imagem de fundo:", type=["png", "jpg", "jpeg"])
+# Input para alterar o nome da barbearia
+new_name = st.text_input("Nome da Barbearia:", st.session_state.company_name)
 
-        # Input para alterar o nome da barbearia
-        new_name = st.text_input("Nome da Barbearia:", st.session_state.company_name)
+# Opção para escolher o tema
+theme_options = {"Claro": "light", "Escuro": "dark"}
+theme_choice = st.selectbox("Escolha o tema:", list(theme_options.keys()), 
+                            index=list(theme_options.values()).index(st.session_state.theme))
 
-        # Opção para escolher o tema
-        theme_options = {"Claro": "light", "Escuro": "dark"}
-        theme_choice = st.selectbox("Escolha o tema:", list(theme_options.keys()), 
-                                    index=list(theme_options.values()).index(st.session_state.theme))
+# Controle deslizante para ajustar opacidade do background
+new_opacity = st.slider("Opacidade do fundo", min_value=0.1, max_value=1.0, value=st.session_state.bg_opacity, step=0.05)
 
-        # Controle deslizante para ajustar opacidade do background
-        new_opacity = st.slider("Opacidade do fundo", min_value=0.1, max_value=1.0, value=st.session_state.bg_opacity, step=0.05)
+# Opção para escolher a cor da fonte
+font_color_options = {
+    "Preto": "black",
+    "Branco": "white",
+    "Vermelho": "red",
+    "Azul": "blue",
+    "Amarelo": "yellow"
+}
+font_choice = st.selectbox("Escolha a cor da fonte:", list(font_color_options.keys()),
+                           index=list(font_color_options.values()).index(st.session_state.font_color))
 
-        # Opção para escolher a cor da fonte
-        font_color_options = {
-            "Preto": "black",
-            "Branco": "white",
-            "Vermelho": "red",
-            "Azul": "blue",
-            "Amarelo": "yellow"
-        }
-        font_choice = st.selectbox("Escolha a cor da fonte:", list(font_color_options.keys()),
-                                   index=list(font_color_options.values()).index(st.session_state.font_color))
+# Botão para salvar as alterações
+if st.button("Salvar Alterações"):
+    if uploaded_logo:
+        logo_path = replace_file(logo_dir, uploaded_logo, "logo")
+        st.success("Logo atualizada!")
 
-        # Botão para salvar as alterações
-        if st.button("Salvar Alterações"):
-            if uploaded_logo:
-                logo_path = replace_file(logo_dir, uploaded_logo, "logo")
-                st.success("Logo atualizada!")
+    if uploaded_bg:
+        bg_path = replace_file(bg_dir, uploaded_bg, "bc")
+        st.success("Imagem de fundo atualizada!")
 
-            if uploaded_bg:
-                bg_path = replace_file(bg_dir, uploaded_bg, "bc")
-                st.success("Imagem de fundo atualizada!")
+    if new_name and new_name != st.session_state.company_name:
+        st.session_state.company_name = new_name
+        save_company_name(new_name)
+        st.success("Nome da empresa atualizado!")
 
-            if new_name and new_name != st.session_state.company_name:
-                st.session_state.company_name = new_name
-                save_company_name(new_name)
-                st.success("Nome da empresa atualizado!")
+    if theme_options[theme_choice] != st.session_state.theme:
+        st.session_state.theme = theme_options[theme_choice]
+        save_theme(st.session_state.theme)
+        st.warning("Tema atualizado! Reinicie o app para aplicar.")
 
-            if theme_options[theme_choice] != st.session_state.theme:
-                st.session_state.theme = theme_options[theme_choice]
-                save_theme(st.session_state.theme)
-                st.warning("Tema atualizado! Reinicie o app para aplicar.")
+    if new_opacity != st.session_state.bg_opacity:
+        st.session_state.bg_opacity = new_opacity
+        save_opacity(new_opacity)
+        st.success("Opacidade do fundo atualizada!")
 
-            if new_opacity != st.session_state.bg_opacity:
-                st.session_state.bg_opacity = new_opacity
-                save_opacity(new_opacity)
-                st.success("Opacidade do fundo atualizada!")
+    if font_color_options[font_choice] != st.session_state.font_color:
+        st.session_state.font_color = font_color_options[font_choice]
+        save_font_color(st.session_state.font_color)
+        st.success("Cor da fonte atualizada!")
 
-            if font_color_options[font_choice] != st.session_state.font_color:
-                st.session_state.font_color = font_color_options[font_choice]
-                save_font_color(st.session_state.font_color)
-                st.success("Cor da fonte atualizada!")
+    st.rerun()  # Recarregar a página para aplicar mudanças
 
-            st.rerun()  # Recarregar a página para aplicar mudanças
 
+# Caminho do arquivo de configuração dos barbeiros
+barbeiros_file = "barbeiros.json"
 
 # Função para salvar os barbeiros
 def save_barbeiros(barbeiros):
@@ -220,30 +216,24 @@ def load_barbeiros():
 # Carregar configurações salvas
 barbeiros_data = load_barbeiros()
 
-# Agora que temos a lista de barbeiros, podemos defini-la
-nomes_barbeiros = barbeiros_data["nomes"]
+# --- Interface de Configuração ---
+st.sidebar.header("Configuração dos Barbeiros")
 
-# Botão para exibir ou ocultar configurações de barbeiros
-show_barbeiros_config = st.button("Exibir/Ocultar Configurações dos Barbeiros")
+# Selecionar número de barbeiros (mínimo 2, máximo 10)
+quantidade_barbeiros = st.sidebar.slider("Número de Barbeiros", min_value=2, max_value=10, value=barbeiros_data["quantidade"])
 
-# Quando o botão for clicado, exibir as configurações dos barbeiros
-if show_barbeiros_config:
-    with st.expander("Configuração dos Barbeiros", expanded=True):
-        # Selecionar número de barbeiros (mínimo 2, máximo 10)
-        quantidade_barbeiros = st.slider("Número de Barbeiros", min_value=2, max_value=10, value=barbeiros_data["quantidade"])
+# Campos para nomear os barbeiros
+nomes_barbeiros = []
+for i in range(quantidade_barbeiros):
+    nome = st.sidebar.text_input(f"Nome do Barbeiro {i+1}:", value=barbeiros_data["nomes"][i] if i < len(barbeiros_data["nomes"]) else f"Barbeiro {i+1}")
+    nomes_barbeiros.append(nome)
 
-        # Campos para nomear os barbeiros
-        nomes_barbeiros = []
-        for i in range(quantidade_barbeiros):
-            nome = st.text_input(f"Nome do Barbeiro {i+1}:", value=barbeiros_data["nomes"][i] if i < len(barbeiros_data["nomes"]) else f"Barbeiro {i+1}")
-            nomes_barbeiros.append(nome)
-
-        # Botão para salvar configurações
-        if st.button("Salvar Configurações dos Barbeiros"):
-            barbeiros_data["quantidade"] = quantidade_barbeiros
-            barbeiros_data["nomes"] = nomes_barbeiros
-            save_barbeiros(barbeiros_data)
-            st.success("Configurações dos barbeiros salvas! Recarregue o app para aplicar as mudanças.")
+# Botão para salvar configurações
+if st.sidebar.button("Salvar Configurações"):
+    barbeiros_data["quantidade"] = quantidade_barbeiros
+    barbeiros_data["nomes"] = nomes_barbeiros
+    save_barbeiros(barbeiros_data)
+    st.success("Configurações salvas! Recarregue o app para aplicar as mudanças.")
 
 # --- CONFIGURAÇÃO DA NAVEGAÇÃO ---
 # Página inicial
@@ -252,7 +242,7 @@ Home = st.Page("views/home.py", title="Home", icon=":material/account_circle:", 
 # Criar páginas de barbeiros dinamicamente
 barbeiro_pages = [
     st.Page(f"views/barbeiro{i+1}.py", title=nomes_barbeiros[i], icon=":material/bar_chart:")
-    for i in range(barbeiros_data["quantidade"])
+    for i in range(quantidade_barbeiros)
 ]
 
 # Outras páginas fixas
