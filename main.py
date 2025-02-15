@@ -268,7 +268,8 @@ barbeiro_pages = [
 ]
 
 financeiro = st.Page("views/financeiro.py", title="Financeiro", icon=":material/attach_money:")
-cadastro = st.Page("views/cadastro.py", title="Cadastro", icon=":material/settings:")
+cadastro = st.Page("views/cadastro.py", title="Cadastro Serviços", icon=":material/settings:")
+cadastro_prod = st.Page("views/cad_produtos.py", title="Cadastro Produtos", icon=":material/settings:")
 config = st.Page("views/config_iniciais.py", title="Ajustes", icon=":material/settings:")
 
 # Navegação sem configurações (apenas conteúdo das páginas)
@@ -277,7 +278,7 @@ pg = st.navigation(
         "Home": [Home],
         "Barbeiros": barbeiro_pages,
         "Financeiro": [financeiro],
-        "Cadastro": [cadastro],
+        "Cadastro": [cadastro,cadastro_prod],
         "Ajustes": [config],
     }
 )
