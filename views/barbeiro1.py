@@ -73,7 +73,7 @@ if atividades:
     df = pd.DataFrame(atividades)
 
     # Filtrar as atividades do barbeiro selecionado
-    df = df[df["barbeiro"] == barbeiro_selecionado]
+    df = df[df["id_barbeiro"] == barbeiro_id_fixo]
 
     # Converter 'data_hora' para datetime
     df["data_hora"] = pd.to_datetime(df["data_hora"], format="%Y-%m-%d %H:%M:%S")
