@@ -21,8 +21,23 @@ lista_servicos = [(servico["id"], servico["servico"], servico["valor"]) for serv
 # Formulário para cadastro de atividades
 st.subheader("Preencha os detalhes da atividade:")
 with st.form("form_atividade"):
-    barbeiro_selecionado = "cleiton"  # Fixo no cleiton
+    # Seleção do barbeiro através do selectbox
+    barbeiro_id_selecionado = st.selectbox(
+        "Selecione o Barbeiro:",
+        options=[(barbeiro[0], barbeiro[1]) for barbeiro in lista_barbeiros],
+        format_func=lambda x: f"{x[1]}"  # Exibe o nome do barbeiro
+    )
 
+    # Buscar o apelido do barbeiro selecionado
+    barbeiro_selecionado = next(
+        (barbeiro["barbeiro"] for barbeiro in barbeiros if barbeiro["id"] == barbeiro_id_selecionado),
+        None
+    )
+
+    # Verifica se o barbeiro foi encontrado
+    if not barbeiro_selecionado:
+        st.error("Barbeiro não encontrado.")
+    
     servico_selecionado = st.selectbox(
         "Serviço:",
         options=lista_servicos,
@@ -38,8 +53,8 @@ with st.form("form_atividade"):
     if submitted:
         try:
             inserir_atividade(
-                id_barbeiro=1,
-                barbeiro="cleiton",
+                id_barbeiro=barbeiro_id_selecionado,
+                barbeiro=barbeiro_selecionado,
                 data_hora=data_hora,
                 servico=servico_selecionado[1],
                 valor=float(servico_selecionado[2]),
@@ -50,16 +65,16 @@ with st.form("form_atividade"):
         except Exception as e:
             st.error(f"Erro ao cadastrar atividade: {e}")
 
-# Exibir atividades apenas do cleiton
+# Exibir atividades apenas do barbeiro selecionado
 st.markdown("---")
-st.title("Atividades de cleiton 💈")
+st.title(f"Atividades de {barbeiro_selecionado} 💈")
 
 atividades = buscar_atividades()
 if atividades:
     df = pd.DataFrame(atividades)
 
-    # Filtrar apenas cleiton
-    df = df[df["barbeiro"] == "cleiton"]
+    # Filtrar apenas as atividades do barbeiro selecionado
+    df = df[df["barbeiro"] == barbeiro_selecionado]
 
     # Converter 'data_hora' para datetime
     df["data_hora"] = pd.to_datetime(df["data_hora"], format="%Y-%m-%d %H:%M:%S")
