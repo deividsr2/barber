@@ -5,7 +5,9 @@ import os
 import glob
 import json
 from banco import atualizar_apelido_barbeiro, listar_barbeiros
-
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
+from banco import engine
 
 
 # Função para substituir arquivos
@@ -215,6 +217,7 @@ if st.session_state.page == "home":  # Garantir que isso só aconteça na págin
             st.rerun()
 
 # --- Configuração dos Barbeiros ---
+# --- Configuração dos Barbeiros ---
 barbeiros_file = "barbeiros.json"
 
 def save_barbeiros(barbeiros):
@@ -226,6 +229,29 @@ def load_barbeiros():
         with open(barbeiros_file, "r") as f:
             return json.load(f)
     return {"quantidade": 2, "nomes": ["Barbeiro 1", "Barbeiro 2"]}
+
+def update_barbeiros_db():
+    """Atualiza os apelidos na tabela `barber_teste_barbeiros` conforme a ordem dos nomes no JSON."""
+    try:
+        with open(barbeiros_file, "r", encoding="utf-8") as f:
+            barbeiros_data = json.load(f)
+
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # Atualizar apenas os apelidos na ordem correspondente ao ID
+        for idx, nome in enumerate(barbeiros_data["nomes"], start=1):
+            session.execute(
+                text("UPDATE barber_teste_barbeiros SET apelido = :apelido WHERE id = :id"),
+                {"apelido": nome, "id": idx}
+            )
+
+        session.commit()
+        session.close()
+        st.success("Apelidos atualizados no banco de dados!")
+
+    except Exception as e:
+        st.error(f"Erro ao atualizar o banco de dados: {e}")
 
 barbeiros_data = load_barbeiros()
 
@@ -257,8 +283,7 @@ if st.session_state.show_barber_config:
         barbeiros_data["quantidade"] = quantidade_barbeiros
         barbeiros_data["nomes"] = nomes_barbeiros
         save_barbeiros(barbeiros_data)
-        st.success("Configurações salvas!")
-        os.system("python atualizar_barbeiros.py")
+        update_barbeiros_db()  # Atualiza o banco logo após salvar
         st.rerun()  # Atualizar a interface
 
 # --- Navegação das Páginas ---
