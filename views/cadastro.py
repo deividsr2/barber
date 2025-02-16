@@ -74,5 +74,6 @@ if servicos:
 else:
     st.warning("Nenhum serviço cadastrado ainda.")
 
+st.dataframe(servico[['servico', 'categoria',  'valor', ]]) 
 
-servico
+
