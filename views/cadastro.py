@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from banco import inserir_servico, buscar_servicos, atualizar_servico
 
 st.title("Cadastro de Serviços")
