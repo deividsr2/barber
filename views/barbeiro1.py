@@ -21,7 +21,7 @@ barbeiro = next(
 
 # Verificar se o barbeiro foi encontrado
 if barbeiro:
-    barbeiro_selecionado = barbeiro["barbeiro"]  # Apelido do barbeiro
+    barbeiro_selecionado = barbeiro["apelido"]  # Apelido do barbeiro
 else:
     barbeiro_selecionado = "Barbeiro não encontrado"
 
