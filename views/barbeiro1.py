@@ -10,34 +10,33 @@ import plotly.express as px
 st.markdown("---")
 st.title("Cadastro de Atividades")
 
-# Buscar dados das tabelas r10_barbeiros e r10_servicos
-barbeiros = buscar_barbeiros()
+# Definindo o ID fixo para o barbeiro
+barbeiro_id_fixo = 1  # Você pode mudar esse ID conforme necessário
+
+# Buscar dados da tabela barber_teste_barbeiros com base no ID fixo
+barbeiro = next(
+    (b for b in buscar_barbeiros() if b["id"] == barbeiro_id_fixo), 
+    None
+)
+
+# Verificar se o barbeiro foi encontrado
+if barbeiro:
+    barbeiro_selecionado = barbeiro["barbeiro"]  # Apelido do barbeiro
+else:
+    barbeiro_selecionado = "Barbeiro não encontrado"
+
+# Buscar dados dos serviços
 servicos = buscar_servicos()
 
-# Montar listas para os selectbox
-lista_barbeiros = [(barbeiro["id"], barbeiro["barbeiro"]) for barbeiro in barbeiros]
+# Montar lista de serviços para o selectbox
 lista_servicos = [(servico["id"], servico["servico"], servico["valor"]) for servico in servicos]
 
 # Formulário para cadastro de atividades
 st.subheader("Preencha os detalhes da atividade:")
 with st.form("form_atividade"):
-    # Seleção do barbeiro através do selectbox
-    barbeiro_id_selecionado = st.selectbox(
-        "Selecione o Barbeiro:",
-        options=[(barbeiro[0], barbeiro[1]) for barbeiro in lista_barbeiros],
-        format_func=lambda x: f"{x[1]}"  # Exibe o nome do barbeiro
-    )
+    # Apenas exibe o barbeiro selecionado com base no ID fixo
+    st.write(f"Barbeiro Selecionado: {barbeiro_selecionado}")
 
-    # Buscar o apelido do barbeiro selecionado
-    barbeiro_selecionado = next(
-        (barbeiro["barbeiro"] for barbeiro in barbeiros if barbeiro["id"] == barbeiro_id_selecionado),
-        None
-    )
-
-    # Verifica se o barbeiro foi encontrado
-    if not barbeiro_selecionado:
-        st.error("Barbeiro não encontrado.")
-    
     servico_selecionado = st.selectbox(
         "Serviço:",
         options=lista_servicos,
@@ -53,7 +52,7 @@ with st.form("form_atividade"):
     if submitted:
         try:
             inserir_atividade(
-                id_barbeiro=barbeiro_id_selecionado,
+                id_barbeiro=barbeiro_id_fixo,  # Usando o ID fixo para o barbeiro
                 barbeiro=barbeiro_selecionado,
                 data_hora=data_hora,
                 servico=servico_selecionado[1],
@@ -65,7 +64,7 @@ with st.form("form_atividade"):
         except Exception as e:
             st.error(f"Erro ao cadastrar atividade: {e}")
 
-# Exibir atividades apenas do barbeiro selecionado
+# Exibir atividades do barbeiro selecionado
 st.markdown("---")
 st.title(f"Atividades de {barbeiro_selecionado} 💈")
 
@@ -73,7 +72,7 @@ atividades = buscar_atividades()
 if atividades:
     df = pd.DataFrame(atividades)
 
-    # Filtrar apenas as atividades do barbeiro selecionado
+    # Filtrar as atividades do barbeiro selecionado
     df = df[df["barbeiro"] == barbeiro_selecionado]
 
     # Converter 'data_hora' para datetime
