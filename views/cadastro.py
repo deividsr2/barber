@@ -69,11 +69,9 @@ if servico_selecionado != "Nenhum":
 # ==============================
 st.subheader("Serviços Cadastrados")
 if servicos:
-    for servico in servicos:
-        st.write(f"**{servico['id']}** | {servico['servico']} - R${servico['valor']} | Categoria: {servico['categoria']}")
+    df_servicos = pd.DataFrame(servicos)  # Converte a lista de dicionários em DataFrame
+    st.dataframe(df_servicos[['servico', 'categoria', 'valor']])  # Exibe as colunas desejadas
 else:
     st.warning("Nenhum serviço cadastrado ainda.")
-
-st.dataframe(servico[['servico', 'categoria',  'valor', ]]) 
 
 
