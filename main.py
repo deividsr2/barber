@@ -4,6 +4,7 @@ import base64
 import os
 import glob
 import json
+from banco import atualizar_apelido_barbeiro, listar_barbeiros
 
 
 
@@ -257,6 +258,7 @@ if st.session_state.show_barber_config:
         barbeiros_data["nomes"] = nomes_barbeiros
         save_barbeiros(barbeiros_data)
         st.success("Configurações salvas!")
+        os.system("python atualizar_barbeiros.py")
         st.rerun()  # Atualizar a interface
 
 # --- Navegação das Páginas ---
