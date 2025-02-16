@@ -190,6 +190,23 @@ def atualizar_senha_barbeiro(nome_barbeiro, nova_senha):
         connection.execute(query, {"nova_senha": nova_senha, "barbeiro": nome_barbeiro})
         connection.commit()
 
+def atualizar_apelido_barbeiro(id, apelido):
+    """
+    Atualiza o apelido de um barbeiro na tabela `barber_teste_barbeiros`.
+    """
+    query = text("UPDATE barber_teste_barbeiros SET apelido = :apelido WHERE id = :id")
+    with engine.connect() as connection:
+        connection.execute(query, {"id": id, "apelido": apelido})
+        connection.commit()
+
+def listar_barbeiros():
+    """
+    Retorna os IDs e nomes atuais dos barbeiros cadastrados no banco.
+    """
+    query = text("SELECT id, barbeiro, apelido FROM barber_teste_barbeiros")
+    with engine.connect() as connection:
+        result = connection.execute(query).fetchall()
+        return [{"id": row[0], "barbeiro": row[1], "apelido": row[2]} for row in result]
 
 # ==============================
 # 📌 Funções para a tabela barber_teste_produtos

@@ -4,6 +4,7 @@ import base64
 import os
 import glob
 import json
+from banco import atualizar_apelido_barbeiro, listar_barbeiros
 
 
 
@@ -229,6 +230,7 @@ def load_barbeiros():
 barbeiros_data = load_barbeiros()
 
 # Inicializar estado para exibição/ocultação das configurações dos barbeiros
+# Inicializar estado para exibição/ocultação das configurações dos barbeiros
 if "show_barber_config" not in st.session_state:
     st.session_state.show_barber_config = False
 
@@ -240,24 +242,19 @@ if st.sidebar.button("Configurar Barbeiros"):
 if st.session_state.show_barber_config:
     st.sidebar.subheader("Configurações dos Barbeiros")
 
-    quantidade_barbeiros = st.sidebar.slider(
-        "Número de Barbeiros", min_value=2, max_value=10, value=barbeiros_data["quantidade"]
-    )
-
     nomes_barbeiros = []
-    for i in range(quantidade_barbeiros):
-        nome = st.sidebar.text_input(
-            f"Nome do Barbeiro {i+1}:",
-            value=barbeiros_data["nomes"][i] if i < len(barbeiros_data["nomes"]) else f"Barbeiro {i+1}"
+    for barbeiro in barbeiros_data:
+        novo_apelido = st.sidebar.text_input(
+            f"Apelido para {barbeiro['barbeiro']}:",
+            value=barbeiro["apelido"] if barbeiro["apelido"] else ""
         )
-        nomes_barbeiros.append(nome)
+        nomes_barbeiros.append({"id": barbeiro["id"], "apelido": novo_apelido})
 
-    if st.sidebar.button("Salvar Configurações"):
-        barbeiros_data["quantidade"] = quantidade_barbeiros
-        barbeiros_data["nomes"] = nomes_barbeiros
-        save_barbeiros(barbeiros_data)
-        st.success("Configurações salvas!")
-        st.rerun()  # Atualizar a interface
+    if st.sidebar.button("Salvar Alterações"):
+        for barbeiro in nomes_barbeiros:
+            atualizar_apelido_barbeiro(barbeiro["id"], barbeiro["apelido"])
+        st.success("Apelidos atualizados com sucesso!")
+        st.rerun()  # Atualiza a interface
 
 # --- Navegação das Páginas ---
 Home = st.Page("views/home.py", title="Home", icon=":material/account_circle:", default=True)
