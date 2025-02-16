@@ -7,14 +7,18 @@ import base64
 import plotly.express as px
 
 # Configuração da página
-
-
 st.markdown("---")
 st.title("Cadastro de Atividades")
 
 # Buscar dados das tabelas r10_barbeiros e r10_servicos
 barbeiros = buscar_barbeiros()
 servicos = buscar_servicos()
+
+# ID fixo do barbeiro
+barbeiro_id_fixo = 1  # Altere conforme necessário
+
+# Obter o apelido do barbeiro baseado no ID
+barbeiro_selecionado = next((b["apelido"] for b in barbeiros if b["id"] == barbeiro_id_fixo), "Desconhecido")
 
 # Montar listas para os selectbox
 lista_barbeiros = [(barbeiro["id"], barbeiro["barbeiro"]) for barbeiro in barbeiros]
@@ -23,8 +27,6 @@ lista_servicos = [(servico["id"], servico["servico"], servico["valor"]) for serv
 # Formulário para cadastro de atividades
 st.subheader("Preencha os detalhes da atividade:")
 with st.form("form_atividade"):
-    barbeiro_selecionado = "cleiton"  # Fixo no cleiton
-
     servico_selecionado = st.selectbox(
         "Serviço:",
         options=lista_servicos,
@@ -32,7 +34,6 @@ with st.form("form_atividade"):
     )
 
     observacao = st.text_area("Observação (opcional):")
-
     data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     submitted = st.form_submit_button("Cadastrar Atividade")
@@ -40,8 +41,8 @@ with st.form("form_atividade"):
     if submitted:
         try:
             inserir_atividade(
-                id_barbeiro=1,
-                barbeiro="cleiton",
+                id_barbeiro=barbeiro_id_fixo,
+                barbeiro=barbeiro_selecionado,
                 data_hora=data_hora,
                 servico=servico_selecionado[1],
                 valor=float(servico_selecionado[2]),
@@ -52,16 +53,16 @@ with st.form("form_atividade"):
         except Exception as e:
             st.error(f"Erro ao cadastrar atividade: {e}")
 
-# Exibir atividades apenas do cleiton
+# Exibir atividades apenas do barbeiro selecionado
 st.markdown("---")
-st.title("Atividades de cleiton 💈")
+st.title(f"Atividades de {barbeiro_selecionado} 💈")
 
 atividades = buscar_atividades()
 if atividades:
     df = pd.DataFrame(atividades)
 
-    # Filtrar apenas cleiton
-    df = df[df["barbeiro"] == "cleiton"]
+    # Filtrar apenas atividades do barbeiro selecionado
+    df = df[df["barbeiro"] == barbeiro_selecionado]
 
     # Converter 'data_hora' para datetime
     df["data_hora"] = pd.to_datetime(df["data_hora"], format="%Y-%m-%d %H:%M:%S")
@@ -84,40 +85,34 @@ if atividades:
 
     senha_correta = buscar_senha_barbeiro(barbeiro_selecionado)  # Busca a senha no banco
 
-    if senha_correta:
-        senha_digitada = st.text_input("Digite sua senha para ver os valores:", type="password")
+    senha_digitada = st.text_input("Digite sua senha para ver os valores:", type="password")
 
-        if senha_digitada:
-            if senha_digitada == senha_correta:
-                st.success("✅ Acesso liberado!")
+    if senha_digitada:
+        if senha_correta and senha_digitada == senha_correta:
+            st.success("✅ Acesso liberado!")
 
-                # Exibir KPIs financeiros
-                col1, col2 = st.columns(2)
-                total_valor = df_filtrado["valor"].sum()
-                col1.metric(label="💰 Receita Total no Período", value=f"R$ {total_valor:.2f}")
+            # Exibir KPIs financeiros
+            col1, col2 = st.columns(2)
+            total_valor = df_filtrado["valor"].sum()
+            col1.metric(label="💰 Receita Total no Período", value=f"R$ {total_valor:.2f}")
 
-                lucro_percentual = col2.slider("Selecione o percentual de lucro:", min_value=10, max_value=100, value=50, step=5)
-                lucro_calculado = (total_valor * lucro_percentual) / 100
-                col2.metric(label=f"📈 Lucro Estimado ({lucro_percentual}%)", value=f"R$ {lucro_calculado:.2f}")
+            lucro_percentual = col2.slider("Selecione o percentual de lucro:", min_value=10, max_value=100, value=50, step=5)
+            lucro_calculado = (total_valor * lucro_percentual) / 100
+            col2.metric(label=f"📈 Lucro Estimado ({lucro_percentual}%)", value=f"R$ {lucro_calculado:.2f}")
 
-                # Criar gráfico de barras
-                st.subheader("📊 Receita por Data")
-                df_filtrado["Data"] = df_filtrado["data_hora"].dt.date
-                fig = px.bar(df_filtrado, x="Data", y="valor", title="Receita por Data", labels={"Data": "Data", "valor": "Valor R$"}, text_auto=True)
-                st.plotly_chart(fig, use_container_width=True)
+            # Criar gráfico de barras
+            st.subheader("📊 Receita por Data")
+            df_filtrado["Data"] = df_filtrado["data_hora"].dt.date
+            fig = px.bar(df_filtrado, x="Data", y="valor", title="Receita por Data", labels={"Data": "Data", "valor": "Valor R$"}, text_auto=True)
+            st.plotly_chart(fig, use_container_width=True)
 
-                # Exibir DataFrame abaixo do gráfico
-                st.subheader("📋 Atividades Registradas")
-                st.dataframe(df_filtrado, use_container_width=True)
+            # Exibir DataFrame abaixo do gráfico
+            st.subheader("📋 Atividades Registradas")
+            st.dataframe(df_filtrado, use_container_width=True)
 
-            else:
-                st.error("❌ Senha incorreta! Tente novamente.")
-        
-        # Opção de troca de senha visível apenas se o usuário estiver logado
-        if senha_digitada == senha_correta:
+            # Opção de troca de senha
             st.subheader("🔒 Alterar Senha")
 
-            # Campo para a nova senha
             nova_senha = st.text_input("Digite a nova senha:", type="password")
             confirmar_senha = st.text_input("Confirme a nova senha:", type="password")
 
@@ -134,10 +129,11 @@ if atividades:
                 else:
                     st.warning("Preencha os dois campos para trocar a senha.")
 
-    else:
-        # Se o barbeiro não souber a senha
-        if st.button("Esqueci minha senha"):
-            # Aqui pode-se adicionar a lógica para recuperação ou redefinição de senha
-            st.warning("Para redefinir a senha, entre em contato com o administrador da plataforma.")
+        else:
+            st.error("❌ Senha incorreta! Tente novamente.")
+
+    # Caso o barbeiro não saiba a senha
+    if st.button("Esqueci minha senha"):
+        st.warning("Para redefinir a senha, entre em contato com o administrador da plataforma.")
 
 st.markdown("---")
