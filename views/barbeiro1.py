@@ -99,7 +99,8 @@ if atividades:
     st.markdown("---")
     st.title(f"💰 Acesso Financeiro - {barbeiro_selecionado.capitalize()}")
 
-    senha_correta = buscar_senha_barbeiro(barbeiro_selecionado)  # Busca a senha no banco
+    # Buscar senha usando o ID do barbeiro
+    senha_correta = buscar_senha_barbeiro(barbeiro_id_fixo)  # Agora utilizando o ID do barbeiro diretamente
 
     if senha_correta:
         senha_digitada = st.text_input("Digite sua senha para ver os valores:", type="password")
@@ -142,7 +143,7 @@ if atividades:
                 if nova_senha and confirmar_senha:
                     if nova_senha == confirmar_senha:
                         try:
-                            atualizar_senha_barbeiro(barbeiro_selecionado, nova_senha)
+                            atualizar_senha_barbeiro(barbeiro_id_fixo, nova_senha)  # Passando o ID do barbeiro diretamente
                             st.success("Senha alterada com sucesso! 🎉")
                         except Exception as e:
                             st.error(f"Erro ao atualizar senha: {e}")
