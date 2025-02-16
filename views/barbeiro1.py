@@ -152,9 +152,10 @@ if atividades:
                     st.warning("Preencha os dois campos para trocar a senha.")
 
     else:
-        # Se o barbeiro não souber a senha
+        # Se a senha do barbeiro não for encontrada
+        if not senha_correta:
+            st.warning("❗ Não encontramos a senha para esse barbeiro. Entre em contato com o administrador para obter a senha.")
         if st.button("Esqueci minha senha"):
-            # Aqui pode-se adicionar a lógica para recuperação ou redefinição de senha
             st.warning("Para redefinir a senha, entre em contato com o administrador da plataforma.")
 
 st.markdown("---")
