@@ -131,20 +131,14 @@ def inserir_barbeiro(barbeiro):
 
 
 def buscar_barbeiros():
-    conn = create_connection()
-    if conn:
-        try:
-            # Consulta para buscar barbeiros
-            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM barber_teste_barbeiros")
-                result = cursor.fetchall()  # Isso retornará uma lista de dicionários
-                return result  # Retorna a lista de barbeiros
-        except Exception as e:
-            st.error(f"Erro ao buscar barbeiros: {e}")
-            return []
-        finally:
-            conn.close()
-    return []
+    query = text("""
+        SELECT id, barbeiro,apelido, telefone_remetente AS telefone, email_remetente AS email
+        FROM barber_teste_barbeiros
+    """)
+    with engine.connect() as connection:
+        result = connection.execute(query)
+        barbeiros = [dict(row) for row in result.mappings()]
+    return barbeiros
 
 def buscar_servicos():
     conn = create_connection()
