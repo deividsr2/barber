@@ -1,12 +1,14 @@
 import streamlit as st
-from datetime import date
-import pandas as pd
+from datetime import date, datetime
 import win32com.client as win32
+import pythoncom  # Importar o pythoncom para inicializar a COM
 from banco import buscar_barbeiros, buscar_servicos, inserir_agendamento
 
 # Função para enviar e-mail
 def enviar_email_confirmacao(email_cliente, servico, barbeiro, data_agendamento, horario):
     try:
+        pythoncom.CoInitialize()  # Inicializa o COM
+
         # Criar item de e-mail no Outlook
         outlook = win32.Dispatch("Outlook.Application")
         email = outlook.CreateItem(0)
@@ -32,6 +34,40 @@ def enviar_email_confirmacao(email_cliente, servico, barbeiro, data_agendamento,
     except Exception as e:
         st.error(f"❌ Erro ao enviar o e-mail de confirmação: {e}")
         return False
+    finally:
+        pythoncom.CoUninitialize()  # Libera o COM após o uso
+
+# Função para criar um compromisso no Outlook
+def criar_compromisso(data_agendamento, horario, servico, barbeiro, telefone_cliente, email_cliente):
+    try:
+        pythoncom.CoInitialize()  # Inicializa o COM
+
+        # Criar um compromisso no calendário do Outlook
+        outlook = win32.Dispatch("Outlook.Application")
+        appointment = outlook.CreateItem(1)  # 1 para compromissos
+
+        # Configurar o compromisso
+        appointment.Subject = f"Agendamento: {servico} - {barbeiro}"
+        appointment.Body = f"""
+        Cliente: {telefone_cliente} ({email_cliente})
+
+        Serviço: {servico}
+        Barbeiro: {barbeiro}
+        Data: {data_agendamento.strftime('%d/%m/%Y')}
+        Horário: {horario}
+        """
+        appointment.Start = f"{data_agendamento.strftime('%m/%d/%Y')} {horario}"
+        appointment.Duration = 60  # Definir a duração como 1 hora (pode ser ajustada)
+        appointment.ReminderSet = True
+        appointment.ReminderMinutesBeforeStart = 15  # Lembrete 15 minutos antes
+        appointment.Save()
+
+        return True
+    except Exception as e:
+        st.error(f"❌ Erro ao criar o compromisso: {e}")
+        return False
+    finally:
+        pythoncom.CoUninitialize()  # Libera o COM após o uso
 
 # Configuração da página
 st.title("📅 Agendamento de Serviços")
@@ -109,10 +145,20 @@ if st.button("Agendar Serviço"):
                 horario
             )
 
-            if email_enviado:
-                st.success("✅ Agendamento realizado com sucesso! Um e-mail de confirmação foi enviado.")
+            # Criar compromisso no Outlook
+            compromisso_criado = criar_compromisso(
+                data_agendamento, 
+                horario, 
+                servico_selecionado["servico"], 
+                barbeiro_selecionado["apelido"], 
+                telefone_cliente, 
+                email_cliente
+            )
+
+            if email_enviado and compromisso_criado:
+                st.success("✅ Agendamento realizado com sucesso! Um e-mail de confirmação foi enviado e o compromisso foi adicionado ao calendário.")
             else:
-                st.warning("⚠️ O e-mail de confirmação não pôde ser enviado.")
+                st.warning("⚠️ O e-mail ou compromisso não pôde ser enviado/criado.")
 
         except Exception as e:
             st.error(f"❌ Erro ao realizar o agendamento: {e}")
