@@ -272,3 +272,38 @@ def atualizar_produto(id, produto, categoria, estoque, estoque_seguranca, valor)
             "valor": valor
         })
         connection.commit()
+
+
+def inserir_agendamento(dt, ano, dia, mes, semana, dia_da_semana, ano_txt, servico, telefone_cliente, email_cliente, id_barbeiro, barbeiro, horario, telefone_remetente, email_remetente):
+    """
+    Insere um novo agendamento na tabela `barber_teste_agendamento`.
+    """
+    query = text("""
+        INSERT INTO barber_teste_agendamento (
+            dt, ano, dia, mes, semana, dia_da_semana, ano_txt, servico, telefone_cliente,
+            email_cliente, id_barbeiro, barbeiro, horario, telefone_remetente, email_remetente
+        ) VALUES (
+            :dt, :ano, :dia, :mes, :semana, :dia_da_semana, :ano_txt, :servico, :telefone_cliente,
+            :email_cliente, :id_barbeiro, :barbeiro, :horario, :telefone_remetente, :email_remetente
+        )
+    """)
+
+    with engine.connect() as connection:
+        connection.execute(query, {
+            "dt": dt,
+            "ano": ano,
+            "dia": dia,
+            "mes": mes,
+            "semana": semana,
+            "dia_da_semana": dia_da_semana,
+            "ano_txt": ano_txt,
+            "servico": servico,
+            "telefone_cliente": telefone_cliente,
+            "email_cliente": email_cliente,
+            "id_barbeiro": id_barbeiro,
+            "barbeiro": barbeiro,
+            "horario": horario,
+            "telefone_remetente": telefone_remetente,
+            "email_remetente": email_remetente
+        })
+        connection.commit()
