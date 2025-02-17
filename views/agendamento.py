@@ -4,6 +4,35 @@ import pandas as pd
 import win32com.client as win32
 from banco import buscar_barbeiros, buscar_servicos, inserir_agendamento
 
+# Função para enviar e-mail
+def enviar_email_confirmacao(email_cliente, servico, barbeiro, data_agendamento, horario):
+    try:
+        # Criar item de e-mail no Outlook
+        outlook = win32.Dispatch("Outlook.Application")
+        email = outlook.CreateItem(0)
+        email.To = email_cliente
+        email.Subject = "Confirmação de Agendamento - Barbearia"
+        email.Body = f"""
+        Olá,
+
+        Seu agendamento foi confirmado com sucesso!
+
+        ✅ Serviço: {servico}
+        ✂️ Barbeiro: {barbeiro}
+        📅 Data: {data_agendamento.strftime("%d/%m/%Y")}
+        ⏰ Horário: {horario}
+
+        Se precisar reagendar ou cancelar, entre em contato.
+
+        Atenciosamente,
+        Barbearia
+        """
+        email.Send()
+        return True
+    except Exception as e:
+        st.error(f"❌ Erro ao enviar o e-mail de confirmação: {e}")
+        return False
+
 # Configuração da página
 st.title("📅 Agendamento de Serviços")
 
@@ -72,28 +101,18 @@ if st.button("Agendar Serviço"):
             )
 
             # Enviar e-mail de confirmação
-            outlook = win32.Dispatch("Outlook.Application")
-            email = outlook.CreateItem(0)
-            email.To = email_cliente
-            email.Subject = "Confirmação de Agendamento - Barbearia"
-            email.Body = f"""
-            Olá,
+            email_enviado = enviar_email_confirmacao(
+                email_cliente, 
+                servico_selecionado["servico"], 
+                barbeiro_selecionado["apelido"], 
+                data_agendamento, 
+                horario
+            )
 
-            Seu agendamento foi confirmado com sucesso!
-
-            ✅ Serviço: {servico_selecionado['servico']}
-            ✂️ Barbeiro: {barbeiro_selecionado['apelido']}
-            📅 Data: {data_agendamento.strftime("%d/%m/%Y")}
-            ⏰ Horário: {horario}
-
-            Se precisar reagendar ou cancelar, entre em contato.
-
-            Atenciosamente,
-            Barbearia
-            """
-            email.Send()
-
-            st.success("✅ Agendamento realizado com sucesso! Um e-mail de confirmação foi enviado.")
+            if email_enviado:
+                st.success("✅ Agendamento realizado com sucesso! Um e-mail de confirmação foi enviado.")
+            else:
+                st.warning("⚠️ O e-mail de confirmação não pôde ser enviado.")
 
         except Exception as e:
             st.error(f"❌ Erro ao realizar o agendamento: {e}")

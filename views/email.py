@@ -1,16 +1,12 @@
-import win32.client as win32
+import win32com.client
 
-#integracao
-outlook = win32.Dispatch('outlook.application')
-
-#criar email
-email = outlook.CreateItem(0)
-
-#config
-email.To = 'deividmib17@hotmail.com'
-email.Subject = 'email python'
-email.HTMLBody = """
-olá mundo
-"""
-
-email.Send()
+try:
+    outlook = win32com.client.Dispatch("Outlook.Application")
+    email = outlook.CreateItem(0)
+    email.To = "deividsr.rodrigues@gmail.com"  # Altere para um e-mail válido de teste
+    email.Subject = "Teste de Envio de E-mail via Outlook"
+    email.Body = "Este é um e-mail de teste enviado via Python e Outlook."
+    email.Send()
+    print("✅ E-mail enviado com sucesso!")
+except Exception as e:
+    print(f"❌ Erro ao enviar e-mail: {e}")
