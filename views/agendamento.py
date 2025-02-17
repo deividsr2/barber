@@ -72,3 +72,4 @@ if st.button("Agendar Serviço"):
             st.success("✅ Agendamento realizado com sucesso!")
         except Exception as e:
             st.error(f"❌ Erro ao realizar o agendamento: {e}")
+            st.rerun()
